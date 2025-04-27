@@ -1,4 +1,5 @@
 import yfinance as yf
+from datetime import datetime, timedelta
 import time
 from requests.exceptions import HTTPError
 
@@ -13,14 +14,20 @@ class StockDataFetcher:
                 
                 try:
                     current_price = stock.info.get('currentPrice')
+                    currency = stock.info.get('currency', 'USD')
+                    history = stock.history(period="30d")
+                    history_data = history[['Close']]
+                    history_data['Date'] = history_data.index
+                    formatted_history = [{'date': row['Date'].strftime('%Y-%m-%d'), 'price': row['Close']} for _, row in history_data.iterrows()]
                     if current_price is None:
                         raise ValueError(f"Could not get current price for {stock_symbol}")
                         
                     return {
                         'success': True,
                         'data': {
+                            'currency': currency,
                             'current_price': current_price,
-                            'currency': stock.info.get('currency', 'USD')
+                            'history': formatted_history
                         }
                     }
                     

@@ -1,17 +1,17 @@
 from flask import Flask, render_template, request, jsonify
-from reddit_sentiment import RedditSentimentAnalyzer
-from stock_data import StockDataFetcher
+from stock_data import StockDataFetcher 
 import os
 from dotenv import load_dotenv
+from stock_sentiment import StockSentimentAnalyzer
 
 # Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
 
-# Initialize analyzers
-sentiment_analyzer = RedditSentimentAnalyzer()
+# Initialize analyzers to use stock sentiment analyzer
 stock_fetcher = StockDataFetcher()
+sentiment_analyzer = StockSentimentAnalyzer()
 
 @app.route('/')
 def index():
@@ -22,13 +22,12 @@ def analyze():
     try:
         # Get stock symbol from form
         stock_symbol = request.form.get('stock_symbol', '').upper()
-        
-        # Get Reddit sentiment
-        sentiment_data = sentiment_analyzer.analyze_sentiment(stock_symbol)
+        # Get stock trend prediction
+        prediction = sentiment_analyzer.predict_trend(stock_symbol)
         
         # Get stock data
         stock_data = stock_fetcher.get_stock_data(stock_symbol)
-        
+
         # Combine the data
         result = {
             'stock_symbol': stock_symbol,
@@ -36,7 +35,7 @@ def analyze():
             'stock_data': stock_data
         }
         
-        return jsonify(result)
+        return jsonify(result) 
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
